@@ -235,6 +235,21 @@
         <div class="scanner-bg w-full h-full relative">
             <div id="reader" class="absolute inset-0 w-full h-full z-0 overflow-hidden"></div>
 
+            <!-- カメラエラーオーバーレイ -->
+            <div id="cameraErrorOverlay" class="absolute inset-0 bg-black bg-opacity-80 hidden z-30 flex items-center justify-center">
+                <div class="text-center p-6 max-w-sm">
+                    <div class="text-red-400 text-6xl mb-4">⚠️</div>
+                    <h3 class="text-white text-lg font-bold mb-2 cyber-font">カメラ起動エラー</h3>
+                    <p class="text-gray-300 text-sm mb-6 leading-relaxed">
+                        カメラのアクセスが許可されていないか、別のアプリでカメラが使用中です。<br>
+                        ブラウザの設定を確認してください。
+                    </p>
+                    <button onclick="retryCamera()" class="glass border-2 border-[#66FCF1] rounded-lg px-6 py-3 glow-cyan transition-all active:scale-95">
+                        <span class="text-[#66FCF1] font-bold glow-text-cyan">もう一度試す</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="absolute top-0 left-0 right-0 p-4 fade-in z-10 cyber-font">
                 <div class="glass rounded-lg p-3 flex justify-between items-center border-l-4 border-job">
                     <div class="flex items-center gap-3">
@@ -561,7 +576,7 @@ const encyclopediaData = {
                 if (cameraId) {
                     await html5QrCode.start(cameraId, config, onScanSuccess, onScanFailure);
                 } else {
-                    await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure);
+                    await html5QrCode.start({ facingMode: { exact: "environment" } }, config, onScanSuccess, onScanFailure);
                 }
 
                 setTimeout(() => {
@@ -572,10 +587,22 @@ const encyclopediaData = {
                         video.style.height = "100%";
                     }
                 }, 1000);
+                // エラーオーバーレイを隠す
+                document.getElementById('cameraErrorOverlay').classList.add('hidden');
+                document.getElementById('cameraErrorOverlay').classList.remove('flex');
             } catch (err) {
                 console.error("カメラ起動エラー:", err);
-                alert("カメラの起動に失敗しました。ブラウザのカメラ許可、または他のアプリでカメラが占有されていないか確認してください。");
+                // alert("カメラの起動に失敗しました。ブラウザのカメラ許可、または他のアプリでカメラが占有されていないか確認してください。");
+                document.getElementById('cameraErrorOverlay').classList.remove('hidden');
+                document.getElementById('cameraErrorOverlay').classList.add('flex');
             }
+        }
+
+        // カメラリトライ関数
+        async function retryCamera() {
+            document.getElementById('cameraErrorOverlay').classList.add('hidden');
+            document.getElementById('cameraErrorOverlay').classList.remove('flex');
+            await startScanner();
         }
 
         function onScanFailure(error) {
