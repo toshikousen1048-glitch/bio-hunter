@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioHunter - 統合システム</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+        :root {
+            /* ジョブ確定時にJSで書き換える動的カラー変数（初期値はネオンレッド） */
+            --job-color: #FF3366; 
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Rajdhani', sans-serif;
+            background: #0B0C10;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .title-font { font-family: 'Cinzel', 'Orbitron', serif; }
+        .cyber-font { font-family: 'Rajdhani', 'Orbitron', sans-serif; }
+
+        /* --- 共通エフェクト --- */
+        .glass { background: rgba(11, 12, 16, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(102, 252, 241, 0.2); }
+        .glass-strong { background: rgba(11, 12, 16, 0.92); backdrop-filter: blur(20px); border: 1px solid rgba(102, 252, 241, 0.3); }
+
+        .glow-cyan { box-shadow: 0 0 15px rgba(102, 252, 241, 0.5), 0 0 30px rgba(102, 252, 241, 0.3); }
+        .glow-purple { box-shadow: 0 0 15px rgba(197, 0, 26, 0.6), 0 0 30px rgba(197, 0, 26, 0.4); }
+        .glow-text-cyan { text-shadow: 0 0 10px rgba(102, 252, 241, 0.8); }
+
+        /* --- ジョブ固有のパーソナルカラーエフェクト --- */
+        .glow-job { box-shadow: 0 0 20px var(--job-color), 0 0 40px var(--job-color); }
+        .border-job { border-color: var(--job-color); }
+        .text-job { color: var(--job-color); }
+        .text-glow-job { text-shadow: 0 0 20px var(--job-color), 0 0 30px var(--job-color); }
+        .bg-job-grad { background: linear-gradient(to right, transparent, var(--job-color), transparent); }
+
+        /* --- アニメーション --- */
+        .crystal-pulse { animation: crystalPulse 3s ease-in-out infinite; }
+        @keyframes crystalPulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); filter: drop-shadow(0 0 20px rgba(102, 252, 241, 0.6)); }
+            50% { opacity: 1; transform: scale(1.1); filter: drop-shadow(0 0 40px rgba(102, 252, 241, 1)); }
+        }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .scale-in { animation: scaleIn 0.5s ease-out; }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .particle { position: absolute; background: radial-gradient(circle, rgba(102, 252, 241, 0.4) 0%, transparent 70%); border-radius: 50%; pointer-events: none; animation: float linear infinite; }
+        @keyframes float { 0% { transform: translateY(100vh) translateX(0); opacity: 0; } 10%, 90% { opacity: 0.6; } 100% { transform: translateY(-10vh) translateX(20px); opacity: 0; } }
+
+        /* --- スキャナー画面用エフェクト --- */
+        .scanner-bg { background: linear-gradient(180deg, #1a1d23 0%, #0d0f12 100%); position: relative; }
+        .target-reticle { position: absolute; width: 250px; height: 250px; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+        .reticle-corner { position: absolute; width: 50px; height: 50px; border: 2px solid #66FCF1; box-shadow: 0 0 10px rgba(102, 252, 241, 0.6), inset 0 0 10px rgba(102, 252, 241, 0.2); }
+        .reticle-corner::before { content: ''; position: absolute; width: 20px; height: 2px; background: #66FCF1; box-shadow: 0 0 5px rgba(102, 252, 241, 0.8); }
+        .corner-tl { top: 0; left: 0; border-right: none; border-bottom: none; } .corner-tl::before { top: 0; left: 0; }
+        .corner-tr { top: 0; right: 0; border-left: none; border-bottom: none; } .corner-tr::before { top: 0; right: 0; }
+        .corner-bl { bottom: 0; left: 0; border-right: none; border-top: none; } .corner-bl::before { bottom: 0; left: 0; }
+        .corner-br { bottom: 0; right: 0; border-left: none; border-top: none; } .corner-br::before { bottom: 0; right: 0; }
+        .reticle-pulse { animation: reticlePulse 2s ease-in-out infinite; }
+        @keyframes reticlePulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        .fab-pulse { animation: fabPulse 2s ease-in-out infinite; }
+        @keyframes fabPulse { 0%, 100% { box-shadow: 0 0 15px rgba(197, 0, 26, 0.6); } 50% { box-shadow: 0 0 30px rgba(197, 0, 26, 0.8); } }
+        
+        @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+        }
+
+        /* 既存の Tailwind class でも動くけど、より微細な調整用 */
+        #loadingOverlay svg {
+        transition: stroke 0.5s ease;
+        }
+
+        /* UIトランジション */
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-panel { transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-open { transform: translateY(0); }
+        .tab-active { color: #66FCF1; position: relative; }
+        .tab-active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #66FCF1, transparent); box-shadow: 0 0 10px rgba(102, 252, 241, 0.8); }
+        
+        /* セル */
+        .cell { aspect-ratio: 1; border-radius: 12px; transition: all 0.3s ease; cursor: pointer; }
+        .cell-locked { background: rgba(11, 12, 16, 0.5); border: 1px solid rgba(102, 252, 241, 0.15); }
+        .cell-unlocked { background: rgba(102, 252, 241, 0.03); border: 1px solid #66FCF1; box-shadow: 0 0 15px rgba(102, 252, 241, 0.3), inset 0 0 15px rgba(102, 252, 241, 0.05); }
+        .cell-unlocked:active { transform: scale(0.95); }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(11, 12, 16, 0.5); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(102, 252, 241, 0.3); border-radius: 2px; }
+    </style>
+</head>
+<body class="w-full h-screen relative overflow-hidden">
+    <div id="loadingOverlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0B0C10]/90 backdrop-blur-md hidden">
+    <div class="relative w-64 h-64">
+        <div class="absolute inset-0 border-4 border-dashed rounded-full animate-[spin_10s_linear_infinite]" style="border-color: var(--job-color); opacity: 0.3;"></div>
+        <div class="absolute inset-0 flex items-center justify-center animate-[spin_20s_linear_infinite]">
+            <svg class="w-48 h-48" viewBox="0 0 100 100" style="fill: none; stroke: var(--job-color); stroke-width: 0.5; filter: drop-shadow(0 0 8px var(--job-color));">
+                <circle cx="50" cy="50" r="45" />
+                <circle cx="50" cy="50" r="38" />
+                <path d="M50 5 L90 75 L10 75 Z" />
+                <path d="M50 95 L10 25 L90 25 Z" />
+                <circle cx="50" cy="5" r="2" fill="var(--job-color)" />
+                <circle cx="50" cy="95" r="2" fill="var(--job-color)" />
+                <circle cx="5" cy="50" r="2" fill="var(--job-color)" />
+                <circle cx="95" cy="50" r="2" fill="var(--job-color)" />
+            </svg>
+        </div>
+        <div class="absolute inset-8 border-2 border-double rounded-full animate-[spin_5s_linear_infinite_reverse]" style="border-color: var(--job-color); opacity: 0.5;"></div>
+    </div>
+    <div class="mt-8 text-center">
+        <p class="cyber-font text-2xl font-bold tracking-widest animate-pulse" style="color: var(--job-color);">TRANSMITTING DATA...</p>
+        <p class="text-xs text-gray-400 mt-2">ギルドへ報告中。魔力を安定させています...</p>
+    </div>
+</div>
+    <!-- 背景パーティクル -->
+    <div id="particles" class="absolute inset-0 pointer-events-none z-0"></div>
+
+    <!-- ========================================= -->
+    <!-- State 1: 同意画面 -->
+    <!-- ========================================= -->
+    <div id="state1" class="absolute inset-0 flex items-center justify-center p-6 z-10">
+        <div class="w-full max-w-md fade-in">
+            <div class="flex justify-center mb-8">
+                <div class="crystal-pulse">
+                    <svg class="w-24 h-24 text-[#66FCF1]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+            </div>
+            <div class="glass-strong rounded-2xl p-6 mb-6 glow-cyan">
+                <div class="mb-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-3 h-3 bg-[#66FCF1] rounded-full glow-cyan"></div>
+                        <p class="cyber-font text-xs text-[#66FCF1] font-bold tracking-wider">GUILD MASTER</p>
+                    </div>
+                    <p class="text-white leading-relaxed mb-4 text-sm font-semibold">
+                        よく来たな、若き探索者よ。我々は『沖縄の生態系』を解き明かす研究を進めておる。お主が発見した生物の記録を、研究データとしてギルドに提供してはくれんか?
+                    </p>
+                    <div class="glass rounded-lg p-3 border border-[#66FCF1] border-opacity-30">
+                        <p class="text-xs text-gray-400 flex items-start gap-2">
+                            <span class="text-[#66FCF1] flex-shrink-0">※</span><span>個人の秘密を聞き出す魔法は使わんから安心せよ。</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <button onclick="showState(2)" class="w-full glass border-2 border-[#66FCF1] rounded-xl py-4 px-6 glow-cyan transition-all active:scale-95">
+                    <p class="text-[#66FCF1] font-bold text-base glow-text-cyan">⚔️ 研究に協力し、適性診断へ進む</p>
+                </button>
+                <button onclick="showState(2)" class="w-full glass border border-[#C5001A] rounded-xl py-3 px-6 transition-all active:scale-95">
+                    <p class="text-[#C5001A] text-sm font-bold">協力はしないが診断だけ受ける</p>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- State 2: 診断画面 (2問構成) -->
+    <!-- ========================================= -->
+    <div id="state2" class="absolute inset-0 hidden items-center justify-center p-6 z-10">
+        <div class="w-full max-w-md">
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-2 cyber-font">
+                    <p class="text-xs text-[#66FCF1] font-bold tracking-wider">APTITUDE TEST</p>
+                    <p class="text-xs text-gray-400" id="q-progress">Q1 / 2</p>
+                </div>
+                <div class="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                    <div id="q-bar" class="h-full bg-gradient-to-r from-[#66FCF1] to-[#C5001A] rounded-full glow-cyan transition-all duration-500" style="width: 50%"></div>
+                </div>
+            </div>
+            <div class="glass-strong rounded-2xl p-6 mb-6 glow-purple fade-in" id="q-card">
+                <div class="mb-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-2 h-2 bg-[#C5001A] rounded-full animate-pulse glow-purple"></div>
+                        <p class="cyber-font text-xs text-[#C5001A] font-bold tracking-wider">SCENARIO</p>
+                    </div>
+                    <p id="q-text" class="text-white text-xl font-bold mb-3 leading-relaxed">未知の森で道が分かれた。<br>どうする?</p>
+                </div>
+            </div>
+            <div class="space-y-4 fade-in" id="q-buttons">
+                <button onclick="answerQuestion('A')" class="w-full glass border-2 border-[#66FCF1] border-opacity-50 rounded-xl py-5 px-6 transition-all active:scale-95 text-left">
+                    <p id="btn-a-text" class="text-[#66FCF1] font-bold text-lg">🌟 直感で進む</p>
+                </button>
+                <button onclick="answerQuestion('B')" class="w-full glass border-2 border-[#C5001A] border-opacity-50 rounded-xl py-5 px-6 transition-all active:scale-95 text-left">
+                    <p id="btn-b-text" class="text-[#C5001A] font-bold text-lg">🔍 周囲の痕跡を調べる</p>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- State 3: ジョブ確定画面 -->
+    <!-- ========================================= -->
+    <div id="state3" class="absolute inset-0 hidden items-center justify-center p-6 z-10">
+        <!-- 動的に色が変わるオーバーレイ -->
+        <div class="absolute inset-0 bg-job-grad opacity-20"></div>
+        
+        <div class="w-full max-w-md relative z-10">
+            <div class="glass-strong rounded-2xl p-8 mb-6 border-2 border-job glow-job scale-in relative overflow-hidden transition-all duration-500">
+                <div class="flex justify-center mb-6 relative z-10">
+                    <div class="glass border border-job rounded-full px-6 py-2">
+                        <p class="cyber-font text-xs text-job font-bold tracking-widest text-glow-job">YOUR CLASS</p>
+                    </div>
+                </div>
+                <div class="text-center mb-6 relative z-10">
+                    <p class="text-6xl mb-4" id="jobIcon">⚔️</p>
+                    <h1 class="title-font text-4xl font-bold text-job text-glow-job mb-3" id="jobName">【冒険者】</h1>
+                    <p class="text-gray-300 font-bold text-sm mb-4">に選ばれた!</p>
+                    <div class="glass rounded-lg p-3 text-left">
+                        <p id="jobDesc" class="text-xs text-white leading-relaxed font-semibold">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="glass rounded-xl p-4 mb-6 border border-[#66FCF1] border-opacity-30">
+                <div class="flex items-start gap-3">
+                    <div class="text-2xl flex-shrink-0">📱</div>
+                    <div>
+                        <p class="cyber-font text-[#66FCF1] font-bold text-sm mb-1">NEXT STEP</p>
+                        <p class="text-gray-300 text-xs leading-relaxed font-semibold">この画面を受付スタッフに見せて、IDカードを受け取れ。準備ができたら探索へ出発だ！</p>
+                    </div>
+                </div>
+            </div>
+            <button onclick="startExploration()" class="w-full glass border-2 border-job rounded-xl py-4 px-6 glow-job transition-all active:scale-95">
+                <p class="text-job font-bold text-lg text-glow-job">🗺️ 探索へ出発する</p>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- State 4: スキャナー＆図鑑HUD -->
+    <!-- ========================================= -->
+    <div id="state4" class="absolute inset-0 hidden z-20">
+        <div class="scanner-bg w-full h-full relative">
+            <div id="reader" class="absolute inset-0 w-full h-full z-0 overflow-hidden"></div>
+
+            <div class="absolute top-0 left-0 right-0 p-4 fade-in z-10 cyber-font">
+                <div class="glass rounded-lg p-3 flex justify-between items-center border-l-4 border-job">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 bg-[#66FCF1] rounded-full animate-pulse glow-cyan"></div>
+                        <div>
+                            <p class="text-[10px] text-[#66FCF1] font-bold tracking-wider">SCANNER STATUS</p>
+                            <p class="text-xs text-white font-semibold">ACTIVE</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-gray-400">YOUR CLASS</p>
+                        <p class="text-sm text-job font-bold text-glow-job" id="hudJobName">HUNTER</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="target-reticle reticle-pulse z-10">
+                <div class="reticle-corner corner-tl"></div>
+                <div class="reticle-corner corner-tr"></div>
+                <div class="reticle-corner corner-bl"></div>
+                <div class="reticle-corner corner-br"></div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div class="w-1 h-8 bg-[#66FCF1] opacity-60 mx-auto mb-1 glow-cyan"></div>
+                    <div class="w-8 h-1 bg-[#66FCF1] opacity-60 glow-cyan"></div>
+                </div>
+            </div>
+
+            <div class="absolute bottom-6 left-4 right-4 flex justify-between items-end fade-in z-10">
+                <button onclick="reportToGuild()" id="reportBtn" class="glass border-2 border-[#66FCF1] rounded-full px-5 py-3 glow-cyan transition-all active:scale-95">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#66FCF1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <span class="text-sm text-[#66FCF1] font-bold glow-text-cyan font-sans">ギルドへ報告</span>
+                    </div>
+                </button>
+                <button onclick="openEncyclopedia()" class="w-16 h-16 rounded-full bg-[#C5001A] border-2 border-[#C5001A] fab-pulse transition-all active:scale-95 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- 図鑑モーダル＆詳細ポップアップ (変更なし) -->
+    <!-- ========================================= -->
+    <div id="encyclopediaOverlay" class="fixed inset-0 z-50 hidden modal-overlay bg-black bg-opacity-60 font-sans">
+        <div id="encyclopediaPanel" class="absolute inset-0 top-16 glass-strong rounded-t-3xl modal-panel flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-[#66FCF1] border-opacity-20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-[#C5001A] bg-opacity-20 border border-[#C5001A] flex items-center justify-center glow-purple">
+                        <svg class="w-5 h-5 text-[#C5001A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    </div>
+                    <h2 class="text-xl font-bold text-[#66FCF1] glow-text-cyan">生物図鑑</h2>
+                </div>
+                <button onclick="closeEncyclopedia()" class="w-10 h-10 rounded-full border border-[#66FCF1] glow-cyan flex items-center justify-center active:scale-95">
+                    <span class="text-[#66FCF1] text-xl font-bold">×</span>
+                </button>
+            </div>
+            <div class="flex border-b border-gray-700">
+                <button onclick="switchTab('all')" id="tab-all" class="tab tab-active flex-1 py-3 text-sm font-bold">すべて</button>
+                <button onclick="switchTab('plant')" id="tab-plant" class="tab flex-1 py-3 text-sm font-bold text-gray-400">植物</button>
+                <button onclick="switchTab('animal')" id="tab-animal" class="tab flex-1 py-3 text-sm font-bold text-gray-400">動物</button>
+                <button onclick="switchTab('microbe')" id="tab-microbe" class="tab flex-1 py-3 text-sm font-bold text-gray-400">微生物</button>
+            </div>
+            <div class="p-4 border-b border-gray-700">
+                <div class="flex gap-4">
+                    <div class="flex-1 glass rounded-lg p-3 text-center">
+                        <p class="text-[10px] text-gray-400 mb-1">発見済み</p>
+                        <p class="text-xl font-bold text-[#66FCF1] cyber-font" id="discoveredCount">0 / 0</p>
+                    </div>
+                    <div class="flex-1 glass rounded-lg p-3 text-center">
+                        <p class="text-[10px] text-gray-400 mb-1">コンプリート</p>
+                        <p class="text-xl font-bold text-[#C5001A] cyber-font" id="completionRate">0%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
+                <div id="encyclopediaGrid" class="grid grid-cols-3 gap-3 pb-8"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailPopup" class="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm hidden">
+        <div class="w-full max-w-md glass-strong rounded-2xl border-2 border-job glow-job scale-in overflow-hidden">
+            <div class="bg-job-grad p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span id="detailIcon" class="text-3xl">🧬</span>
+                    <div>
+                        <p id="detailCategory" class="text-[10px] text-white/70 font-bold cyber-font tracking-tighter">CATEGORY: UNKNOWN</p>
+                        <h2 id="detailName" class="text-xl font-bold text-white title-font">生物名</h2>
+                    </div>
+                </div>
+                <button onclick="closeDetail()" class="w-8 h-8 flex items-center justify-center rounded-full border border-white/30 text-white hover:bg-white/10 transition-all">✕</button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div class="glass bg-black/40 rounded-lg p-4 border border-job/30 relative">
+                    <div class="absolute -top-2 left-3 bg-[#0B0C10] px-2">
+                        <p class="text-[9px] text-job cyber-font font-bold tracking-widest">ANALYSIS REPORT</p>
+                    </div>
+                    <p id="detailDescription" class="text-sm text-gray-200 leading-relaxed font-medium min-h-[80px]"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="glass p-2 rounded-lg text-center">
+                        <p class="text-[9px] text-gray-400 cyber-font">DISCOVERY DATE</p>
+                        <p id="detailDate" class="text-xs text-white font-bold">-</p>
+                    </div>
+                    <div class="glass p-2 rounded-lg text-center">
+                        <p class="text-[9px] text-gray-400 cyber-font">RARITY</p>
+                        <p id="detailRank" class="text-xs text-job font-bold">NORMAL</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 pt-0">
+                <button onclick="closeDetail()" class="w-full py-3 glass border border-job rounded-xl text-job font-bold text-sm active:scale-95 transition-all">
+                    閉じる (BACK TO INDEX)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. システム全体とジョブ管理 (State Management)
+        // ==========================================
+        // ★ ローカルストレージから読み込み、無ければ生成・保存
+        let sessionJobName = localStorage.getItem('biohunter_jobName') || "未設定";
+        
+        let sessionUserID = localStorage.getItem('biohunter_userID');
+        if (!sessionUserID) {
+            sessionUserID = "H-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+            localStorage.setItem('biohunter_userID', sessionUserID);
+        }
+        
+        let sessionJobKey = localStorage.getItem('biohunter_jobKey') || "";
+        
+        // 診断の進行状況
+        let currentQuestion = 1;
+        let firstAnswer = '';
+        let typeTimeout; // タイピング演出をキャンセルするための変数
+
+        // 4つのジョブ定義とカラー設定
+        const jobs = {
+            producer: { name: '生産職', color: '#FFD700', icon: '⚒️', desc: '発酵や有用成分の抽出で役立つ製品を造り出すモノづくりのマスター。' },
+            adventurer: { name: '冒険者', color: '#FF3366', icon: '⚔️', desc: 'フィールドワークや環境調査に挑む、行動力と探索のスペシャリスト。' },
+            scientist: { name: '科学者', color: '#3388FF', icon: '🔬', desc: '顕微鏡観察やDNA解析を駆使して生命の謎を解き明かす分析の賢者。' },
+            programmer: { name: 'プログラマー', color: '#00FF66', icon: '💻', desc: 'バイオインフォマティクスで生命をデータとして操る論理の魔導士。' }
+        };
+
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 15; i++) {
+                const p = document.createElement('div'); p.className = 'particle';
+                const size = Math.random() * 4 + 2;
+                p.style.width = `${size}px`; p.style.height = `${size}px`;
+                p.style.left = `${Math.random() * 100}%`;
+                p.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                p.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(p);
+            }
+        }
+
+        function showState(num) {
+            document.querySelectorAll('body > div[id^="state"]').forEach(el => { el.classList.add('hidden'); el.classList.remove('flex'); });
+            const target = document.getElementById(`state${num}`);
+            target.classList.remove('hidden');
+            if (num < 4) target.classList.add('flex');
+        }
+
+        // ==========================================
+        // ★ 2問構成の適性診断ロジック
+        // ==========================================
+        function answerQuestion(choice) {
+            if (currentQuestion === 1) {
+                // 1問目の回答を記録し、2問目へ
+                firstAnswer = choice;
+                currentQuestion = 2;
+                
+                // アニメーション用に一度非表示にして再表示
+                const qCard = document.getElementById('q-card');
+                const qBtns = document.getElementById('q-buttons');
+                qCard.classList.remove('fade-in'); qBtns.classList.remove('fade-in');
+                void qCard.offsetWidth; // リフロー強制
+                
+                document.getElementById('q-progress').textContent = 'Q2 / 2';
+                document.getElementById('q-bar').style.width = '100%';
+
+                if (choice === 'A') {
+                    // 直感ルート（冒険者 or 生産職）
+                    document.getElementById('q-text').innerHTML = '巨大な未知の植物を発見した。<br>どうする?';
+                    document.getElementById('btn-a-text').textContent = '🌟 登って周囲を見渡す';
+                    document.getElementById('btn-b-text').textContent = '🧪 実から薬が作れないか考える';
+                } else {
+                    // 分析ルート（科学者 or プログラマー）
+                    document.getElementById('q-text').innerHTML = '古代の生物データを見つけた。<br>どうする?';
+                    document.getElementById('btn-a-text').textContent = '🔬 遺伝子配列を詳細に解析する';
+                    document.getElementById('btn-b-text').textContent = '💻 シミュレータで復元を試みる';
+                }
+                
+                qCard.classList.add('fade-in'); qBtns.classList.add('fade-in');
+
+            } else {
+                // 2問目の回答でジョブを決定
+                let jobKey = '';
+                if (firstAnswer === 'A') {
+                    jobKey = choice === 'A' ? 'adventurer' : 'producer';
+                } else {
+                    jobKey = choice === 'A' ? 'scientist' : 'programmer';
+                }
+                setJob(jobKey);
+            }
+        }
+
+        // ジョブを画面に反映させる関数
+        function setJob(key) {
+            const job = jobs[key];
+            sessionJobName = job.name;
+            sessionJobKey = key;
+
+            // ★ 追加：ジョブ情報を端末に保存
+            localStorage.setItem('biohunter_jobKey', key);
+            localStorage.setItem('biohunter_jobName', job.name);
+
+            // CSS変数を書き換えて、ネオンの色をジョブカラーに一変させる
+            document.documentElement.style.setProperty('--job-color', job.color);
+
+            // テキストの更新
+            document.getElementById('jobIcon').textContent = job.icon;
+            document.getElementById('jobName').textContent = `【${job.name}】`;
+            document.getElementById('jobDesc').textContent = job.desc;
+            document.getElementById('hudJobName').textContent = job.name;
+
+            showState(3);
+        }
+
+        function startExploration() {
+            document.getElementById('particles').style.display = 'none';
+            showState(4);
+            startScanner(); // カメラON!
+        }
+
+        // ==========================================
+        // 2. 図鑑データ管理 (Encyclopedia Logic)
+        // ==========================================
+// --- 1. 図鑑マスターデータ（全15種：植物5、動物5、微生物5） ---
+const encyclopediaData = {
+    all: [
+        // 【植物：plant】
+        { id: 1, qrCode: 'QR_PLANT_01', name: 'ハイビスカス', type: 'plant', discovered: false, icon: '🌺', category: '被子植物', description: '沖縄を代表する花。赤い色素には抗酸化作用があり、美容や健康に役立つ成分が含まれている。', date: '-' },
+        { id: 2, qrCode: 'QR_PLANT_02', name: 'サトウキビ', type: 'plant', discovered: false, icon: '🎋', category: 'イネ科', description: '黒糖の原料。搾りかす（バガス）はバイオエタノール燃料としても研究される優秀なバイオマス資源だ。', date: '-' },
+        { id: 3, qrCode: 'QR_PLANT_03', name: 'マングローブ', type: 'plant', discovered: false, icon: '🌳', category: '塩生植物', description: '海水と淡水が混ざる場所に生える植物の総称。地球温暖化を防ぐ「ブルーカーボン」として注目されている。', date: '-' },
+        { id: 4, qrCode: 'QR_PLANT_04', name: 'シークヮーサー', type: 'plant', discovered: false, icon: '🍋', category: 'ミカン科', description: '沖縄特産の柑橘類。ノビレチンという成分が豊富で、認知機能の改善効果などが研究されている。', date: '-' },
+        { id: 5, qrCode: 'QR_PLANT_05', name: '月桃（ゲットウ）', type: 'plant', discovered: false, icon: '🌿', category: 'ショウガ科', description: '独特の香りを持つ沖縄のハーブ。強力な抗菌作用があり、伝統的な虫除けや食品の保存に使われてきた。', date: '-' },
+
+        // 【動物：animal】
+        { id: 6, qrCode: 'QR_ANIMAL_01', name: 'ヤンバルクイナ', type: 'animal', discovered: false, icon: '🐦', category: '鳥類', description: '沖縄本島北部（やんばる）の固有種。飛べない鳥として有名で、絶滅危惧種として保護活動が進められている。', date: '-' },
+        { id: 7, qrCode: 'QR_ANIMAL_02', name: 'イリオモテヤマネコ', type: 'animal', discovered: false, icon: '🐆', category: '哺乳類', description: '西表島にのみ生息する野生のネコ。生態系の頂点に立つが、交通事故などで数が減っている。', date: '-' },
+        { id: 8, qrCode: 'QR_ANIMAL_03', name: 'ハブ', type: 'animal', discovered: false, icon: '🐍', category: '爬虫類', description: '強力な毒を持つヘビ。危険だが、その毒成分から新しい薬や血清を作り出す研究も行われている。', date: '-' },
+        { id: 9, qrCode: 'QR_ANIMAL_04', name: 'オニヒトデ', type: 'animal', discovered: false, icon: '⭐', category: '棘皮動物', description: 'サンゴを食べる厄介者。大発生するとサンゴ礁を壊滅させるため、生態系のバランス管理が急務だ。', date: '-' },
+        { id: 10, qrCode: 'QR_ANIMAL_05', name: 'ミドリイシ（サンゴ）', type: 'animal', discovered: false, icon: '🪸', category: '刺胞動物', description: '植物に見えるが実は動物。沖縄の海を豊かにする「海のゆりかご」だが、白化現象の危機に瀕している。', date: '-' },
+
+        // 【微生物：microbe】（※学科の強みをアピールする最重要カテゴリ）
+        { id: 11, qrCode: 'QR_MICRO_01', name: '乳酸菌', type: 'microbe', discovered: false, icon: '🥛', category: '細菌', description: '糖を分解して乳酸を作る菌。ヨーグルトだけでなく、沖縄の伝統発酵飲料「ミキ」の製造にも欠かせない。', date: '-' },
+        { id: 12, qrCode: 'QR_MICRO_02', name: '大腸菌', type: 'microbe', discovered: false, icon: '🧫', category: '腸内細菌', description: 'バイオテクノロジーの超エリート。遺伝子を組み替えることで、薬や有用なタンパク質を大量に作らせることができる。', date: '-' },
+        { id: 13, qrCode: 'QR_MICRO_03', name: '褐虫藻（かっちゅうそう）', type: 'microbe', discovered: false, icon: '🦠', category: '渦鞭毛藻', description: '【SSR】サンゴの体内に住み込み、光合成で作った栄養をサンゴに与える共生微細藻類。海の命の源。', date: '-' },
+        { id: 14, qrCode: 'QR_MICRO_04', name: '放線菌', type: 'microbe', discovered: false, icon: '🍄', category: '真正細菌', description: '【SSR】土の匂いの元。カビのような糸状に成長し、人類を救う様々な「抗生物質」を作り出す魔法の菌。', date: '-' },
+        { id: 15, qrCode: 'QR_MICRO_05', name: 'PFAS分解菌', type: 'microbe', discovered: false, icon: '☣️', category: '新種候補', description: '【UR】永遠の化学物質と呼ばれる「PFAS」を分解する力を持つかもしれない未知の菌。現在、ギルドで研究中だ！', date: '-' }
+    ],
+    plant: [], animal: [], microbe: []
+};
+        let currentTab = 'all';
+
+        function normalizeType(type) {
+            const value = String(type || '').trim().toLowerCase();
+            if (/^(plant|plants|植物|しょくぶつ|botany|herb|herbal)$/i.test(value) || value.includes('plant') || value.includes('植物')) {
+                return 'plant';
+            }
+            if (/^(animal|animals|動物|どうぶつ|fauna|beast)$/i.test(value) || value.includes('animal') || value.includes('動物')) {
+                return 'animal';
+            }
+            if (/^(microbe|microbes|微生物|bacteria|bacterium|microorganism|microorganisms|菌)$/i.test(value) || value.includes('microbe') || value.includes('微生物') || value.includes('菌')) {
+                return 'microbe';
+            }
+            return 'plant';
+        }
+
+        function updateCategoryData() {
+            encyclopediaData.plant = encyclopediaData.all.filter(item => item.type === 'plant');
+            encyclopediaData.animal = encyclopediaData.all.filter(item => item.type === 'animal');
+            encyclopediaData.microbe = encyclopediaData.all.filter(item => item.type === 'microbe');
+            if(document.getElementById('encyclopediaPanel').classList.contains('modal-open')){
+                renderEncyclopedia(); updateStats();
+            }
+        }
+
+        // ==========================================
+        // 3. QRスキャナー (Scanner Logic)
+        // ==========================================
+        let html5QrCode;
+        const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyBlka6YWiK0hUAcQD3JzF7hKpx1XeJRGIBRzlK2RChX3eyzvDfOMCS758KvugM9Hb-ow/exec";
+
+        async function startScanner() {
+            try {
+                if (html5QrCode) {
+                    await html5QrCode.stop();
+                }
+            } catch (e) {
+                console.warn('前のカメラ停止時に問題が発生しました:', e);
+            }
+
+            html5QrCode = new Html5Qrcode("reader");
+            const config = {
+                fps: 20,
+                
+            };
+
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                const cameraId = cameras && cameras.length
+                    ? cameras.find(cam => /back|rear|environment/i.test(cam.label))?.id || cameras[0].id
+                    : null;
+
+                if (cameraId) {
+                    await html5QrCode.start(cameraId, config, onScanSuccess, onScanFailure);
+                } else {
+                    await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure);
+                }
+
+                setTimeout(() => {
+                    const video = document.querySelector("#reader video");
+                    if (video) {
+                        video.style.objectFit = "cover";
+                        video.style.width = "100%";
+                        video.style.height = "100%";
+                    }
+                }, 1000);
+            } catch (err) {
+                console.error("カメラ起動エラー:", err);
+                alert("カメラの起動に失敗しました。ブラウザのカメラ許可、または他のアプリでカメラが占有されていないか確認してください。");
+            }
+        }
+
+        function onScanFailure(error) {
+            // スキャン中に頻繁に呼ばれるため、必要ならログだけに留める
+            // console.debug('Scan failure:', error);
+        }
+
+        async function onScanSuccess(decodedText) {
+            try {
+                if (html5QrCode) {
+                    await html5QrCode.pause();
+                }
+            } catch (e) {
+                console.warn('一時停止に失敗しました:', e);
+            }
+
+            const foundItem = encyclopediaData.all.find(item => item.qrCode === decodedText);
+            if (foundItem) {
+                if (!foundItem.discovered) {
+                    foundItem.discovered = true;
+                    const now = new Date();
+                    foundItem.date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                    
+                    // ★ 追加：発見状態を端末に保存する
+                    saveDiscoveredToStorage();
+                    
+                    updateCategoryData();
+                    alert(`【新種発見！】\n${foundItem.icon} ${foundItem.name} を図鑑に登録しました！`);
+                    showDetail(foundItem.id);
+                } else {
+                    alert(`この生物はすでに図鑑に登録されています。\n${foundItem.icon} ${foundItem.name}`);
+                    showDetail(foundItem.id);
+                }
+            } else {
+                alert(`【システム警告】未登録のQRコードです。\n中身: ${decodedText}`);
+            }
+
+            setTimeout(() => {
+                if (html5QrCode) {
+                    html5QrCode.resume();
+                }
+            }, 1600);
+        }
+
+        // ★ 追加：図鑑データをLocalStorageに保存する関数
+        function saveDiscoveredToStorage() {
+            const discoveredItems = encyclopediaData.all
+                .filter(item => item.discovered)
+                .map(item => ({ qrCode: item.qrCode, date: item.date })); // 必要な情報だけ抽出して軽量化
+            localStorage.setItem('biohunter_discovered', JSON.stringify(discoveredItems));
+        }
+
+        // ★ 追加：ページ読み込み時にLocalStorageから全データを復元する関数
+        function restoreStateFromStorage() {
+            // 1. 図鑑データの復元
+            const savedDiscoveredStr = localStorage.getItem('biohunter_discovered');
+            if (savedDiscoveredStr) {
+                try {
+                    const savedDiscovered = JSON.parse(savedDiscoveredStr);
+                    savedDiscovered.forEach(saved => {
+                        const item = encyclopediaData.all.find(i => i.qrCode === saved.qrCode);
+                        if (item) {
+                            item.discovered = true;
+                            item.date = saved.date;
+                        }
+                    });
+                } catch(e) {
+                    console.error("図鑑データの復元に失敗しました:", e);
+                }
+            }
+
+            // 2. ジョブが既に決まっている（2回目以降のアクセス）場合、長老画面を飛ばしてカメラへ直行
+            if (sessionJobKey && jobs[sessionJobKey]) {
+                document.documentElement.style.setProperty('--job-color', jobs[sessionJobKey].color);
+                document.getElementById('hudJobName').textContent = sessionJobName;
+                document.getElementById('particles').style.display = 'none';
+                showState(4); // 直接カメラ画面へ
+                startScanner();
+            } else {
+                // 初回アクセスなら同意画面（State 1）を表示
+                showState(1);
+            }
+        }
+
+        async function loadEncyclopediaFromSheet() {
+            try {
+                const response = await fetch(`${SHEET_API_URL}?action=load`);
+                if (!response.ok) {
+                    throw new Error(`Google Sheets API 読み込みに失敗しました: ${response.status}`);
+                }
+                const result = await response.json();
+                if (Array.isArray(result.entries) && result.entries.length > 0) {
+                    setEncyclopediaData(result.entries);
+                    return;
+                }
+                console.warn('Google Sheets から有効なデータが見つかりませんでした。', result);
+            } catch (error) {
+                console.warn('Google Sheets 読み込み失敗:', error);
+            }
+        }
+
+        function setEncyclopediaData(rows) {
+            encyclopediaData.all = rows.map((row, index) => ({
+                id: Number(row.id) || index + 1,
+                qrCode: String(row.qrCode || '').trim(),
+                name: row.name || '未登録の生物',
+                type: normalizeType(row.type),
+                discovered: String(row.discovered || 'false').toLowerCase() === 'true',
+                icon: row.icon || '❓',
+                category: row.category || '-',
+                description: row.description || '-',
+                date: row.date || '-',
+                rank: row.rank || 'Normal',
+                hint: row.hint || 'この場所の近く（例：3階廊下）に生息しているようだ...'
+            }));
+            updateCategoryData();
+        }
+
+        // ==========================================
+        // 4. UIコントローラー (Modal & Render)
+        // ==========================================
+        function openEncyclopedia() {
+            const overlay = document.getElementById('encyclopediaOverlay');
+            const panel = document.getElementById('encyclopediaPanel');
+            overlay.classList.remove('hidden'); overlay.style.opacity = '0';
+            requestAnimationFrame(() => { overlay.style.opacity = '1'; panel.classList.add('modal-open'); });
+            switchTab('all');
+        }
+        function closeEncyclopedia() {
+            const overlay = document.getElementById('encyclopediaOverlay');
+            const panel = document.getElementById('encyclopediaPanel');
+            overlay.style.opacity = '0'; panel.classList.remove('modal-open');
+            setTimeout(() => { overlay.classList.add('hidden'); }, 400);
+        }
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(btn => { btn.classList.remove('tab-active', 'text-[#66FCF1]'); btn.classList.add('text-gray-400'); });
+            const activeTab = document.getElementById(`tab-${tab}`);
+            activeTab.classList.add('tab-active', 'text-[#66FCF1]'); activeTab.classList.remove('text-gray-400');
+            currentTab = tab; renderEncyclopedia(); updateStats();
+        }
+        function renderEncyclopedia() {
+            const grid = document.getElementById('encyclopediaGrid');
+            grid.innerHTML = '';
+            encyclopediaData[currentTab].forEach(item => {
+                const div = document.createElement('div');
+                if (item.discovered) {
+                    div.className = 'cell cell-unlocked flex flex-col items-center justify-center p-3';
+                    div.onclick = () => showDetail(item.id);
+                    div.innerHTML = `
+                        <div class="text-4xl mb-2">${item.icon}</div>
+                        <p class="text-[10px] text-[#66FCF1] font-bold text-center leading-tight">${item.name}</p>
+                    `;
+                } else {
+                    div.className = 'cell cell-locked cursor-pointer flex flex-col items-center justify-center p-3';
+                    div.onclick = () => showHint(item.id);
+                    div.innerHTML = `
+                        <div class="text-3xl mb-2 opacity-20">🔒</div>
+                        <p class="text-[10px] text-gray-600 text-center">???</p>
+                    `;
+                }
+                grid.appendChild(div);
+            });
+        }
+        function updateStats() {
+            const data = encyclopediaData[currentTab];
+            const discovered = data.filter(item => item.discovered).length;
+            const rate = data.length === 0 ? 0 : Math.round((discovered / data.length) * 100);
+            document.getElementById('discoveredCount').textContent = `${discovered} / ${data.length}`;
+            document.getElementById('completionRate').textContent = `${rate}%`;
+        }
+        function getRankColor(rank) {
+            switch (String(rank || '').toLowerCase()) {
+                case 'legend': return '#F59E0B';
+                case 'rare': return '#3B82F6';
+                case 'ssr': return '#A855F7';
+                case 'ur': return '#F97316';
+                case 'normal': return '#66FCF1';
+                default: return '#9CA3AF';
+            }
+        }
+        function showHint(id) {
+            const item = encyclopediaData.all.find(i => i.id === id);
+            if (!item) return;
+
+            clearTimeout(typeTimeout);
+            document.getElementById('detailName').textContent = '???';
+            document.getElementById('detailIcon').textContent = '❓';
+            document.getElementById('detailCategory').textContent = 'LOCATION HINT';
+            document.getElementById('detailDescription').textContent = item.hint || 'この場所の近く（例：3階廊下）に生息しているようだ...';
+            document.getElementById('detailDate').textContent = '?';
+            const rankEl = document.getElementById('detailRank');
+            rankEl.textContent = '???';
+            rankEl.style.color = '#9CA3AF';
+
+            document.getElementById('detailPopup').classList.remove('hidden');
+        }
+        function showDetail(id) {
+            const item = encyclopediaData.all.find(i => i.id === id);
+            if (!item || !item.discovered) return;
+
+            // 基本情報のセット
+            document.getElementById('detailName').textContent = item.name;
+            document.getElementById('detailIcon').textContent = item.icon || '🧬';
+            document.getElementById('detailCategory').textContent = `CATEGORY: ${item.type.toUpperCase()}`;
+            document.getElementById('detailDate').textContent = item.date || '---';
+            const rankEl = document.getElementById('detailRank');
+            rankEl.textContent = String(item.rank || 'NORMAL').toUpperCase();
+            rankEl.style.color = getRankColor(item.rank);
+
+            // ポップアップを表示
+            const popup = document.getElementById('detailPopup');
+            popup.classList.remove('hidden');
+
+            // 説明文のタイピング演出
+            const descElement = document.getElementById('detailDescription');
+            const fullText = item.description || "データが存在しません。";
+            
+            // 前回のタイピングをリセット
+            clearTimeout(typeTimeout);
+            descElement.textContent = "";
+            
+            let i = 0;
+            function typeWriter() {
+                if (i < fullText.length) {
+                    descElement.textContent += fullText.charAt(i);
+                    i++;
+                    typeTimeout = setTimeout(typeWriter, 30); // 30ms間隔で1文字表示
+                }
+            }
+            typeWriter();
+        }
+        function showSuccessMessage(message) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-[200] glass-strong rounded-2xl p-6 max-w-md text-center animate-pulse border-2 border-[#66FCF1] glow-cyan';
+            msgDiv.innerHTML = `
+                <p class="cyber-font text-lg font-bold text-[#66FCF1] glow-text-cyan mb-3">✨ 報告成功 ✨</p>
+                <p class="text-white text-sm leading-relaxed font-semibold whitespace-pre-line">${message}</p>
+                <button onclick="this.parentElement.remove()" class="mt-4 w-full glass border border-[#66FCF1] rounded-lg py-2 px-4 text-[#66FCF1] font-bold text-sm active:scale-95 transition-all">
+                    OK
+                </button>
+            `;
+            document.body.appendChild(msgDiv);
+            setTimeout(() => msgDiv.classList.remove('animate-pulse'), 3000);
+        }
+
+        function showErrorMessage(message) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-[200] glass-strong rounded-2xl p-6 max-w-md text-center border-2 border-[#C5001A] glow-purple';
+            msgDiv.innerHTML = `
+                <p class="cyber-font text-lg font-bold text-[#C5001A] mb-3">⚠️ 通信エラー</p>
+                <p class="text-white text-sm leading-relaxed font-semibold whitespace-pre-line">${message}</p>
+                <button onclick="this.parentElement.remove()" class="mt-4 w-full glass border border-[#C5001A] rounded-lg py-2 px-4 text-[#C5001A] font-bold text-sm active:scale-95 transition-all">
+                    OK
+                </button>
+            `;
+            document.body.appendChild(msgDiv);
+        }
+
+        function closeDetail() {
+            document.getElementById('detailPopup').classList.add('hidden');
+            clearTimeout(typeTimeout); // 閉じた時に演出を止める
+        }
+
+        // ==========================================
+        // 5. バックエンド通信 (GAS API)
+        // ==========================================
+        const ENDPOINT_URL = SHEET_API_URL;
+
+        async function reportToGuild() {
+            const discoveredItems = encyclopediaData.all.filter(item => item.discovered);
+            if (discoveredItems.length === 0) {
+                alert("まだ何も発見していないようだ。まずはターゲットをスキャンしてくれ！");
+                return;
+            }
+
+            if (!confirm(`現在 ${discoveredItems.length} 種を発見している。\nギルドへ報告し、探索を終了してもよいか？`)) {
+                return;
+            }
+
+            const loader = document.getElementById("loadingOverlay");
+            const btn = document.getElementById("reportBtn");
+            loader.classList.remove("hidden");
+            btn.disabled = true;
+            btn.innerHTML = `<span class="text-sm text-[#66FCF1] font-bold">通信中...</span>`;
+
+            const postData = {
+                sessionID: sessionUserID,
+                job: sessionJobName,
+                totalPoint: discoveredItems.length * 10,
+                scannedQRs: discoveredItems.map(item => item.qrCode),
+                action: 'report'
+            };
+
+            try {
+                const response = await fetch(ENDPOINT_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify(postData)
+                });
+                const responseText = await response.text();
+                console.log("API レスポンス:", responseText);
+                
+                if (!response.ok) {
+                    throw new Error(`通信エラー ${response.status}: ${responseText}`);
+                }
+                
+                let result = {};
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    console.warn('JSON パースエラー:', e);
+                }
+                console.log("送信成功:", result);
+                // ローディング画面をすぐに非表示
+                loader.classList.add("hidden");
+                
+                // ボタン更新
+                btn.innerHTML = `<span class="text-sm text-white font-bold">✓ 報告完了！</span>`;
+                btn.style.borderColor = "#FF3366";
+                btn.style.boxShadow = "0 0 15px rgba(255, 51, 102, 0.6)";
+                btn.disabled = false;
+                
+                // 成功メッセージを画面上部に表示
+                showSuccessMessage(`✨ 報告完了だ！\n【${sessionJobName}】としての見事な働きだった。\nこの画面を受付へ見せて、最終スタンプをもらうのだ！`);
+            } catch (error) {
+                console.error("通信エラー:", error);
+                loader.classList.add("hidden");
+                
+                btn.innerHTML = `<span class="text-sm text-white font-bold">✗ 通信失敗</span>`;
+                btn.style.borderColor = "#C5001A";
+                btn.disabled = false;
+                
+                const errorMsg = `通信に失敗しました。\nエラー: ${error.message}\n\n開発者ツール (F12) を確認してください。`;
+                console.error("詳細エラー:", errorMsg);
+                showErrorMessage(errorMsg);
+            }
+        }
+
+        window.onload = async () => {
+            createParticles();
+            await loadEncyclopediaFromSheet(); // GASからマスターデータを取得
+            restoreStateFromStorage(); // ★ 追加：ローカルストレージから個人の進行状況を復元し、画面を分岐
+            updateCategoryData();
+        };
+    </script>
+</body>
+</html>
