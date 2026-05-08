@@ -259,9 +259,14 @@
                             <p class="text-xs text-white font-semibold">ACTIVE</p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-gray-400">YOUR CLASS</p>
-                        <p class="text-sm text-job font-bold text-glow-job" id="hudJobName">HUNTER</p>
+                    <div class="text-right flex items-center gap-2">
+                        <button onclick="switchCamera()" class="w-8 h-8 rounded-full bg-gray-600 border border-gray-500 flex items-center justify-center transition-all active:scale-95" title="カメラ切り替え">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+                        <div>
+                            <p class="text-[10px] text-gray-400">YOUR CLASS</p>
+                            <p class="text-sm text-job font-bold text-glow-job" id="hudJobName">HUNTER</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -569,14 +574,21 @@ const encyclopediaData = {
 
             try {
                 const cameras = await Html5Qrcode.getCameras();
-                const cameraId = cameras && cameras.length
-                    ? cameras.find(cam => /back|rear|environment/i.test(cam.label))?.id || cameras[0].id
-                    : null;
+                const preferredFacing = localStorage.getItem('cameraFacing') || 'environment';
+                let cameraId = null;
+                if (cameras && cameras.length) {
+                    if (preferredFacing === 'environment') {
+                        cameraId = cameras.find(cam => /back|rear|environment/i.test(cam.label))?.id || cameras[0].id;
+                    } else {
+                        cameraId = cameras.find(cam => /front|user|face/i.test(cam.label))?.id || cameras[0].id;
+                    }
+                }
 
                 if (cameraId) {
                     await html5QrCode.start(cameraId, config, onScanSuccess, onScanFailure);
                 } else {
-                    await html5QrCode.start({ facingMode: { exact: "environment" } }, config, onScanSuccess, onScanFailure);
+                    const preferredFacing = localStorage.getItem('cameraFacing') || 'environment';
+                    await html5QrCode.start({ facingMode: { exact: preferredFacing } }, config, onScanSuccess, onScanFailure);
                 }
 
                 setTimeout(() => {
@@ -602,6 +614,22 @@ const encyclopediaData = {
         async function retryCamera() {
             document.getElementById('cameraErrorOverlay').classList.add('hidden');
             document.getElementById('cameraErrorOverlay').classList.remove('flex');
+            await startScanner();
+        }
+
+        // カメラ切り替え関数
+        async function switchCamera() {
+            try {
+                if (html5QrCode) {
+                    await html5QrCode.stop();
+                }
+            } catch (e) {
+                console.warn('カメラ停止エラー:', e);
+            }
+            // 現在のfacingModeを切り替える
+            const currentFacing = localStorage.getItem('cameraFacing') || 'environment';
+            const newFacing = currentFacing === 'environment' ? 'user' : 'environment';
+            localStorage.setItem('cameraFacing', newFacing);
             await startScanner();
         }
 
