@@ -66,14 +66,11 @@
         @keyframes fabPulse { 0%, 100% { box-shadow: 0 0 15px rgba(197, 0, 26, 0.6); } 50% { box-shadow: 0 0 30px rgba(197, 0, 26, 0.8); } }
         
         @keyframes spin-slow {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* 既存の Tailwind class でも動くけど、より微細な調整用 */
-        #loadingOverlay svg {
-        transition: stroke 0.5s ease;
-        }
+        #loadingOverlay svg { transition: stroke 0.5s ease; }
 
         /* UIトランジション */
         .modal-overlay { transition: opacity 0.3s ease; }
@@ -95,33 +92,30 @@
 </head>
 <body class="w-full h-screen relative overflow-hidden">
     <div id="loadingOverlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0B0C10]/90 backdrop-blur-md hidden">
-    <div class="relative w-64 h-64">
-        <div class="absolute inset-0 border-4 border-dashed rounded-full animate-[spin_10s_linear_infinite]" style="border-color: var(--job-color); opacity: 0.3;"></div>
-        <div class="absolute inset-0 flex items-center justify-center animate-[spin_20s_linear_infinite]">
-            <svg class="w-48 h-48" viewBox="0 0 100 100" style="fill: none; stroke: var(--job-color); stroke-width: 0.5; filter: drop-shadow(0 0 8px var(--job-color));">
-                <circle cx="50" cy="50" r="45" />
-                <circle cx="50" cy="50" r="38" />
-                <path d="M50 5 L90 75 L10 75 Z" />
-                <path d="M50 95 L10 25 L90 25 Z" />
-                <circle cx="50" cy="5" r="2" fill="var(--job-color)" />
-                <circle cx="50" cy="95" r="2" fill="var(--job-color)" />
-                <circle cx="5" cy="50" r="2" fill="var(--job-color)" />
-                <circle cx="95" cy="50" r="2" fill="var(--job-color)" />
-            </svg>
+        <div class="relative w-64 h-64">
+            <div class="absolute inset-0 border-4 border-dashed rounded-full animate-[spin_10s_linear_infinite]" style="border-color: var(--job-color); opacity: 0.3;"></div>
+            <div class="absolute inset-0 flex items-center justify-center animate-[spin_20s_linear_infinite]">
+                <svg class="w-48 h-48" viewBox="0 0 100 100" style="fill: none; stroke: var(--job-color); stroke-width: 0.5; filter: drop-shadow(0 0 8px var(--job-color));">
+                    <circle cx="50" cy="50" r="45" />
+                    <circle cx="50" cy="50" r="38" />
+                    <path d="M50 5 L90 75 L10 75 Z" />
+                    <path d="M50 95 L10 25 L90 25 Z" />
+                    <circle cx="50" cy="5" r="2" fill="var(--job-color)" />
+                    <circle cx="50" cy="95" r="2" fill="var(--job-color)" />
+                    <circle cx="5" cy="50" r="2" fill="var(--job-color)" />
+                    <circle cx="95" cy="50" r="2" fill="var(--job-color)" />
+                </svg>
+            </div>
+            <div class="absolute inset-8 border-2 border-double rounded-full animate-[spin_5s_linear_infinite_reverse]" style="border-color: var(--job-color); opacity: 0.5;"></div>
         </div>
-        <div class="absolute inset-8 border-2 border-double rounded-full animate-[spin_5s_linear_infinite_reverse]" style="border-color: var(--job-color); opacity: 0.5;"></div>
+        <div class="mt-8 text-center">
+            <p class="cyber-font text-2xl font-bold tracking-widest animate-pulse" style="color: var(--job-color);">TRANSMITTING DATA...</p>
+            <p class="text-xs text-gray-400 mt-2">ギルドへ報告中。魔力を安定させています...</p>
+        </div>
     </div>
-    <div class="mt-8 text-center">
-        <p class="cyber-font text-2xl font-bold tracking-widest animate-pulse" style="color: var(--job-color);">TRANSMITTING DATA...</p>
-        <p class="text-xs text-gray-400 mt-2">ギルドへ報告中。魔力を安定させています...</p>
-    </div>
-</div>
-    <!-- 背景パーティクル -->
+
     <div id="particles" class="absolute inset-0 pointer-events-none z-0"></div>
 
-    <!-- ========================================= -->
-    <!-- State 1: 同意画面 -->
-    <!-- ========================================= -->
     <div id="state1" class="absolute inset-0 flex items-center justify-center p-6 z-10">
         <div class="w-full max-w-md fade-in">
             <div class="flex justify-center mb-8">
@@ -156,9 +150,6 @@
         </div>
     </div>
 
-    <!-- ========================================= -->
-    <!-- State 2: 診断画面 (2問構成) -->
-    <!-- ========================================= -->
     <div id="state2" class="absolute inset-0 hidden items-center justify-center p-6 z-10">
         <div class="w-full max-w-md">
             <div class="mb-8">
@@ -190,13 +181,8 @@
         </div>
     </div>
 
-    <!-- ========================================= -->
-    <!-- State 3: ジョブ確定画面 -->
-    <!-- ========================================= -->
     <div id="state3" class="absolute inset-0 hidden items-center justify-center p-6 z-10">
-        <!-- 動的に色が変わるオーバーレイ -->
         <div class="absolute inset-0 bg-job-grad opacity-20"></div>
-        
         <div class="w-full max-w-md relative z-10">
             <div class="glass-strong rounded-2xl p-8 mb-6 border-2 border-job glow-job scale-in relative overflow-hidden transition-all duration-500">
                 <div class="flex justify-center mb-6 relative z-10">
@@ -228,14 +214,10 @@
         </div>
     </div>
 
-    <!-- ========================================= -->
-    <!-- State 4: スキャナー＆図鑑HUD -->
-    <!-- ========================================= -->
     <div id="state4" class="absolute inset-0 hidden z-20">
         <div class="scanner-bg w-full h-full relative">
             <div id="reader" class="absolute inset-0 w-full h-full z-0 overflow-hidden"></div>
 
-            <!-- カメラエラーオーバーレイ -->
             <div id="cameraErrorOverlay" class="absolute inset-0 bg-black bg-opacity-80 hidden z-30 flex items-center justify-center">
                 <div class="text-center p-6 max-w-sm">
                     <div class="text-red-400 text-6xl mb-4">⚠️</div>
@@ -296,9 +278,6 @@
         </div>
     </div>
 
-    <!-- ========================================= -->
-    <!-- 図鑑モーダル＆詳細ポップアップ (変更なし) -->
-    <!-- ========================================= -->
     <div id="encyclopediaOverlay" class="fixed inset-0 z-50 hidden modal-overlay bg-black bg-opacity-60 font-sans">
         <div id="encyclopediaPanel" class="absolute inset-0 top-16 glass-strong rounded-t-3xl modal-panel flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-[#66FCF1] border-opacity-20">
@@ -381,23 +360,19 @@
         // ==========================================
         // 1. システム全体とジョブ管理 (State Management)
         // ==========================================
-        // ★ ローカルストレージから読み込み、無ければ生成・保存
         let sessionJobName = localStorage.getItem('biohunter_jobName') || "未設定";
-        
         let sessionUserID = localStorage.getItem('biohunter_userID');
         if (!sessionUserID) {
             sessionUserID = "H-" + Math.random().toString(36).substring(2, 6).toUpperCase();
             localStorage.setItem('biohunter_userID', sessionUserID);
         }
-        
         let sessionJobKey = localStorage.getItem('biohunter_jobKey') || "";
         
-        // 診断の進行状況
+        let currentFacingMode = localStorage.getItem('cameraFacing') || "environment";
         let currentQuestion = 1;
         let firstAnswer = '';
-        let typeTimeout; // タイピング演出をキャンセルするための変数
+        let typeTimeout;
 
-        // 4つのジョブ定義とカラー設定
         const jobs = {
             producer: { name: '生産職', color: '#FFD700', icon: '⚒️', desc: '発酵や有用成分の抽出で役立つ製品を造り出すモノづくりのマスター。' },
             adventurer: { name: '冒険者', color: '#FF3366', icon: '⚔️', desc: 'フィールドワークや環境調査に挑む、行動力と探索のスペシャリスト。' },
@@ -425,40 +400,28 @@
             if (num < 4) target.classList.add('flex');
         }
 
-        // ==========================================
-        // ★ 2問構成の適性診断ロジック
-        // ==========================================
         function answerQuestion(choice) {
             if (currentQuestion === 1) {
-                // 1問目の回答を記録し、2問目へ
                 firstAnswer = choice;
                 currentQuestion = 2;
-                
-                // アニメーション用に一度非表示にして再表示
                 const qCard = document.getElementById('q-card');
                 const qBtns = document.getElementById('q-buttons');
                 qCard.classList.remove('fade-in'); qBtns.classList.remove('fade-in');
-                void qCard.offsetWidth; // リフロー強制
-                
+                void qCard.offsetWidth; 
                 document.getElementById('q-progress').textContent = 'Q2 / 2';
                 document.getElementById('q-bar').style.width = '100%';
 
                 if (choice === 'A') {
-                    // 直感ルート（冒険者 or 生産職）
                     document.getElementById('q-text').innerHTML = '巨大な未知の植物を発見した。<br>どうする?';
                     document.getElementById('btn-a-text').textContent = '🌟 登って周囲を見渡す';
                     document.getElementById('btn-b-text').textContent = '🧪 実から薬が作れないか考える';
                 } else {
-                    // 分析ルート（科学者 or プログラマー）
                     document.getElementById('q-text').innerHTML = '古代の生物データを見つけた。<br>どうする?';
                     document.getElementById('btn-a-text').textContent = '🔬 遺伝子配列を詳細に解析する';
                     document.getElementById('btn-b-text').textContent = '💻 シミュレータで復元を試みる';
                 }
-                
                 qCard.classList.add('fade-in'); qBtns.classList.add('fade-in');
-
             } else {
-                // 2問目の回答でジョブを決定
                 let jobKey = '';
                 if (firstAnswer === 'A') {
                     jobKey = choice === 'A' ? 'adventurer' : 'producer';
@@ -469,76 +432,56 @@
             }
         }
 
-        // ジョブを画面に反映させる関数
         function setJob(key) {
             const job = jobs[key];
             sessionJobName = job.name;
             sessionJobKey = key;
-
-            // ★ 追加：ジョブ情報を端末に保存
             localStorage.setItem('biohunter_jobKey', key);
             localStorage.setItem('biohunter_jobName', job.name);
-
-            // CSS変数を書き換えて、ネオンの色をジョブカラーに一変させる
             document.documentElement.style.setProperty('--job-color', job.color);
-
-            // テキストの更新
             document.getElementById('jobIcon').textContent = job.icon;
             document.getElementById('jobName').textContent = `【${job.name}】`;
             document.getElementById('jobDesc').textContent = job.desc;
             document.getElementById('hudJobName').textContent = job.name;
-
             showState(3);
         }
 
         function startExploration() {
             document.getElementById('particles').style.display = 'none';
             showState(4);
-            startScanner(); // カメラON!
+            startCamera(); 
         }
 
         // ==========================================
         // 2. 図鑑データ管理 (Encyclopedia Logic)
         // ==========================================
-// --- 1. 図鑑マスターデータ（全15種：植物5、動物5、微生物5） ---
-const encyclopediaData = {
-    all: [
-        // 【植物：plant】
-        { id: 1, qrCode: 'QR_PLANT_01', name: 'ハイビスカス', type: 'plant', discovered: false, icon: '🌺', category: '被子植物', description: '沖縄を代表する花。赤い色素には抗酸化作用があり、美容や健康に役立つ成分が含まれている。', date: '-' },
-        { id: 2, qrCode: 'QR_PLANT_02', name: 'サトウキビ', type: 'plant', discovered: false, icon: '🎋', category: 'イネ科', description: '黒糖の原料。搾りかす（バガス）はバイオエタノール燃料としても研究される優秀なバイオマス資源だ。', date: '-' },
-        { id: 3, qrCode: 'QR_PLANT_03', name: 'マングローブ', type: 'plant', discovered: false, icon: '🌳', category: '塩生植物', description: '海水と淡水が混ざる場所に生える植物の総称。地球温暖化を防ぐ「ブルーカーボン」として注目されている。', date: '-' },
-        { id: 4, qrCode: 'QR_PLANT_04', name: 'シークヮーサー', type: 'plant', discovered: false, icon: '🍋', category: 'ミカン科', description: '沖縄特産の柑橘類。ノビレチンという成分が豊富で、認知機能の改善効果などが研究されている。', date: '-' },
-        { id: 5, qrCode: 'QR_PLANT_05', name: '月桃（ゲットウ）', type: 'plant', discovered: false, icon: '🌿', category: 'ショウガ科', description: '独特の香りを持つ沖縄のハーブ。強力な抗菌作用があり、伝統的な虫除けや食品の保存に使われてきた。', date: '-' },
-
-        // 【動物：animal】
-        { id: 6, qrCode: 'QR_ANIMAL_01', name: 'ヤンバルクイナ', type: 'animal', discovered: false, icon: '🐦', category: '鳥類', description: '沖縄本島北部（やんばる）の固有種。飛べない鳥として有名で、絶滅危惧種として保護活動が進められている。', date: '-' },
-        { id: 7, qrCode: 'QR_ANIMAL_02', name: 'イリオモテヤマネコ', type: 'animal', discovered: false, icon: '🐆', category: '哺乳類', description: '西表島にのみ生息する野生のネコ。生態系の頂点に立つが、交通事故などで数が減っている。', date: '-' },
-        { id: 8, qrCode: 'QR_ANIMAL_03', name: 'ハブ', type: 'animal', discovered: false, icon: '🐍', category: '爬虫類', description: '強力な毒を持つヘビ。危険だが、その毒成分から新しい薬や血清を作り出す研究も行われている。', date: '-' },
-        { id: 9, qrCode: 'QR_ANIMAL_04', name: 'オニヒトデ', type: 'animal', discovered: false, icon: '⭐', category: '棘皮動物', description: 'サンゴを食べる厄介者。大発生するとサンゴ礁を壊滅させるため、生態系のバランス管理が急務だ。', date: '-' },
-        { id: 10, qrCode: 'QR_ANIMAL_05', name: 'ミドリイシ（サンゴ）', type: 'animal', discovered: false, icon: '🪸', category: '刺胞動物', description: '植物に見えるが実は動物。沖縄の海を豊かにする「海のゆりかご」だが、白化現象の危機に瀕している。', date: '-' },
-
-        // 【微生物：microbe】（※学科の強みをアピールする最重要カテゴリ）
-        { id: 11, qrCode: 'QR_MICRO_01', name: '乳酸菌', type: 'microbe', discovered: false, icon: '🥛', category: '細菌', description: '糖を分解して乳酸を作る菌。ヨーグルトだけでなく、沖縄の伝統発酵飲料「ミキ」の製造にも欠かせない。', date: '-' },
-        { id: 12, qrCode: 'QR_MICRO_02', name: '大腸菌', type: 'microbe', discovered: false, icon: '🧫', category: '腸内細菌', description: 'バイオテクノロジーの超エリート。遺伝子を組み替えることで、薬や有用なタンパク質を大量に作らせることができる。', date: '-' },
-        { id: 13, qrCode: 'QR_MICRO_03', name: '褐虫藻（かっちゅうそう）', type: 'microbe', discovered: false, icon: '🦠', category: '渦鞭毛藻', description: '【SSR】サンゴの体内に住み込み、光合成で作った栄養をサンゴに与える共生微細藻類。海の命の源。', date: '-' },
-        { id: 14, qrCode: 'QR_MICRO_04', name: '放線菌', type: 'microbe', discovered: false, icon: '🍄', category: '真正細菌', description: '【SSR】土の匂いの元。カビのような糸状に成長し、人類を救う様々な「抗生物質」を作り出す魔法の菌。', date: '-' },
-        { id: 15, qrCode: 'QR_MICRO_05', name: 'PFAS分解菌', type: 'microbe', discovered: false, icon: '☣️', category: '新種候補', description: '【UR】永遠の化学物質と呼ばれる「PFAS」を分解する力を持つかもしれない未知の菌。現在、ギルドで研究中だ！', date: '-' }
-    ],
-    plant: [], animal: [], microbe: []
-};
+        const encyclopediaData = {
+            all: [
+                { id: 1, qrCode: 'QR_PLANT_01', name: 'ハイビスカス', type: 'plant', discovered: false, icon: '🌺', category: '被子植物', description: '沖縄を代表する花。赤い色素には抗酸化作用があり、美容や健康に役立つ成分が含まれている。', date: '-' },
+                { id: 2, qrCode: 'QR_PLANT_02', name: 'サトウキビ', type: 'plant', discovered: false, icon: '🎋', category: 'イネ科', description: '黒糖の原料。搾りかす（バガス）はバイオエタノール燃料としても研究される優秀なバイオマス資源だ。', date: '-' },
+                { id: 3, qrCode: 'QR_PLANT_03', name: 'マングローブ', type: 'plant', discovered: false, icon: '🌳', category: '塩生植物', description: '海水と淡水が混ざる場所に生える植物の総称。地球温暖化を防ぐ「ブルーカーボン」として注目されている。', date: '-' },
+                { id: 4, qrCode: 'QR_PLANT_04', name: 'シークヮーサー', type: 'plant', discovered: false, icon: '🍋', category: 'ミカン科', description: '沖縄特産の柑橘類。ノビレチンという成分が豊富で、認知機能の改善効果などが研究されている。', date: '-' },
+                { id: 5, qrCode: 'QR_PLANT_05', name: '月桃（ゲットウ）', type: 'plant', discovered: false, icon: '🌿', category: 'ショウガ科', description: '独特の香りを持つ沖縄のハーブ。強力な抗菌作用があり、伝統的な虫除けや食品の保存に使われてきた。', date: '-' },
+                { id: 6, qrCode: 'QR_ANIMAL_01', name: 'ヤンバルクイナ', type: 'animal', discovered: false, icon: '🐦', category: '鳥類', description: '沖縄本島北部（やんばる）の固有種。飛べない鳥として有名で、絶滅危惧種として保護活動が進められている。', date: '-' },
+                { id: 7, qrCode: 'QR_ANIMAL_02', name: 'イリオモテヤマネコ', type: 'animal', discovered: false, icon: '🐆', category: '哺乳類', description: '西表島にのみ生息する野生のネコ。生態系の頂点に立つが、交通事故などで数が減っている。', date: '-' },
+                { id: 8, qrCode: 'QR_ANIMAL_03', name: 'ハブ', type: 'animal', discovered: false, icon: '🐍', category: '爬虫類', description: '強力な毒を持つヘビ。危険だが、その毒成分から新しい薬や血清を作り出す研究も行われている。', date: '-' },
+                { id: 9, qrCode: 'QR_ANIMAL_04', name: 'オニヒトデ', type: 'animal', discovered: false, icon: '⭐', category: '棘皮動物', description: 'サンゴを食べる厄介者。大発生するとサンゴ礁を壊滅させるため、生態系のバランス管理が急務だ。', date: '-' },
+                { id: 10, qrCode: 'QR_ANIMAL_05', name: 'ミドリイシ（サンゴ）', type: 'animal', discovered: false, icon: '🪸', category: '刺胞動物', description: '植物に見えるが実は動物。沖縄の海を豊かにする「海のゆりかご」だが、白化現象の危機に瀕している。', date: '-' },
+                { id: 11, qrCode: 'QR_MICRO_01', name: '乳酸菌', type: 'microbe', discovered: false, icon: '🥛', category: '細菌', description: '糖を分解して乳酸を作る菌。ヨーグルトだけでなく、沖縄の伝統発酵飲料「ミキ」の製造にも欠かせない。', date: '-' },
+                { id: 12, qrCode: 'QR_MICRO_02', name: '大腸菌', type: 'microbe', discovered: false, icon: '🧫', category: '腸内細菌', description: 'バイオテクノロジーの超エリート。遺伝子を組み替えることで、薬や有用なタンパク質を大量に作らせることができる。', date: '-' },
+                { id: 13, qrCode: 'QR_MICRO_03', name: '褐虫藻（かっちゅうそう）', type: 'microbe', discovered: false, icon: '🦠', category: '渦鞭毛藻', description: '【SSR】サンゴの体内に住み込み、光合成で作った栄養をサンゴに与える共生微細藻類。海の命の源。', date: '-' },
+                { id: 14, qrCode: 'QR_MICRO_04', name: '放線菌', type: 'microbe', discovered: false, icon: '🍄', category: '真正細菌', description: '【SSR】土の匂いの元。カビのような糸状に成長し、人類を救う様々な「抗生物質」を作り出す魔法の菌。', date: '-' },
+                { id: 15, qrCode: 'QR_MICRO_05', name: 'PFAS分解菌', type: 'microbe', discovered: false, icon: '☣️', category: '新種候補', description: '【UR】永遠の化学物質と呼ばれる「PFAS」を分解する力を持つかもしれない未知の菌。現在、ギルドで研究中だ！', date: '-' }
+            ],
+            plant: [], animal: [], microbe: []
+        };
         let currentTab = 'all';
 
         function normalizeType(type) {
             const value = String(type || '').trim().toLowerCase();
-            if (/^(plant|plants|植物|しょくぶつ|botany|herb|herbal)$/i.test(value) || value.includes('plant') || value.includes('植物')) {
-                return 'plant';
-            }
-            if (/^(animal|animals|動物|どうぶつ|fauna|beast)$/i.test(value) || value.includes('animal') || value.includes('動物')) {
-                return 'animal';
-            }
-            if (/^(microbe|microbes|微生物|bacteria|bacterium|microorganism|microorganisms|菌)$/i.test(value) || value.includes('microbe') || value.includes('微生物') || value.includes('菌')) {
-                return 'microbe';
-            }
+            if (/^(plant|plants|植物|しょくぶつ|botany|herb|herbal)$/i.test(value) || value.includes('plant') || value.includes('植物')) return 'plant';
+            if (/^(animal|animals|動物|どうぶつ|fauna|beast)$/i.test(value) || value.includes('animal') || value.includes('動物')) return 'animal';
+            if (/^(microbe|microbes|微生物|bacteria|bacterium|microorganism|microorganisms|菌)$/i.test(value) || value.includes('microbe') || value.includes('微生物') || value.includes('菌')) return 'microbe';
             return 'plant';
         }
 
@@ -552,45 +495,43 @@ const encyclopediaData = {
         }
 
         // ==========================================
-        // 3. QRスキャナー (Scanner Logic)
+        // ★ 3. QRスキャナー (エラー修正版)
         // ==========================================
         let html5QrCode;
+        let isCameraRunning = false; // カメラが起動中かどうかのフラグ
         const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyBlka6YWiK0hUAcQD3JzF7hKpx1XeJRGIBRzlK2RChX3eyzvDfOMCS758KvugM9Hb-ow/exec";
 
-        async function startScanner() {
-            try {
-                if (html5QrCode) {
+        async function startCamera() {
+            // 既にカメラが動いていれば、完全に停止・クリアしてから再起動する
+            if (isCameraRunning && html5QrCode) {
+                try {
                     await html5QrCode.stop();
+                    html5QrCode.clear();
+                } catch (e) {
+                    console.warn("既存のカメラの停止に失敗しました:", e);
                 }
-            } catch (e) {
-                console.warn('前のカメラ停止時に問題が発生しました:', e);
             }
 
+            // 新しいインスタンスを生成
             html5QrCode = new Html5Qrcode("reader");
-            const config = {
-                fps: 20,
-                
-            };
+            
+            const config = { fps: 10, experimentalFeatures: { useBarCodeDetectorIfSupported: true } };
+            
+            // exactを指定せず、シンプルに "environment" (背面) か "user" (前面) を要求する
+            const constraints = currentFacingMode === "environment" 
+                ? { facingMode: "environment" } 
+                : { facingMode: "user" };
 
             try {
-                const cameras = await Html5Qrcode.getCameras();
-                const preferredFacing = localStorage.getItem('cameraFacing') || 'environment';
-                let cameraId = null;
-                if (cameras && cameras.length) {
-                    if (preferredFacing === 'environment') {
-                        cameraId = cameras.find(cam => /back|rear|environment/i.test(cam.label))?.id || cameras[0].id;
-                    } else {
-                        cameraId = cameras.find(cam => /front|user|face/i.test(cam.label))?.id || cameras[0].id;
-                    }
-                }
-
-                if (cameraId) {
-                    await html5QrCode.start(cameraId, config, onScanSuccess, onScanFailure);
-                } else {
-                    const preferredFacing = localStorage.getItem('cameraFacing') || 'environment';
-                    await html5QrCode.start({ facingMode: { exact: preferredFacing } }, config, onScanSuccess, onScanFailure);
-                }
-
+                await html5QrCode.start(
+                    constraints, 
+                    config, 
+                    onScanSuccess, 
+                    onScanFailure
+                );
+                isCameraRunning = true; // 起動成功フラグを立てる
+                console.log(`カメラ起動成功: ${currentFacingMode}`);
+                
                 setTimeout(() => {
                     const video = document.querySelector("#reader video");
                     if (video) {
@@ -599,48 +540,41 @@ const encyclopediaData = {
                         video.style.height = "100%";
                     }
                 }, 1000);
-                // エラーオーバーレイを隠す
                 document.getElementById('cameraErrorOverlay').classList.add('hidden');
                 document.getElementById('cameraErrorOverlay').classList.remove('flex');
             } catch (err) {
+                isCameraRunning = false;
                 console.error("カメラ起動エラー:", err);
-                // alert("カメラの起動に失敗しました。ブラウザのカメラ許可、または他のアプリでカメラが占有されていないか確認してください。");
                 document.getElementById('cameraErrorOverlay').classList.remove('hidden');
                 document.getElementById('cameraErrorOverlay').classList.add('flex');
             }
         }
 
-        // カメラリトライ関数
         async function retryCamera() {
             document.getElementById('cameraErrorOverlay').classList.add('hidden');
             document.getElementById('cameraErrorOverlay').classList.remove('flex');
-            await startScanner();
+            await startCamera();
         }
 
-        // カメラ切り替え関数
         async function switchCamera() {
-            try {
-                if (html5QrCode) {
-                    await html5QrCode.stop();
-                }
-            } catch (e) {
-                console.warn('カメラ停止エラー:', e);
+            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+            localStorage.setItem('cameraFacing', currentFacingMode);
+            
+            const btn = document.querySelector('button[title="カメラ切り替え"]');
+            if (btn) {
+                btn.style.opacity = "0.5";
+                setTimeout(() => btn.style.opacity = "1", 500);
             }
-            // 現在のfacingModeを切り替える
-            const currentFacing = localStorage.getItem('cameraFacing') || 'environment';
-            const newFacing = currentFacing === 'environment' ? 'user' : 'environment';
-            localStorage.setItem('cameraFacing', newFacing);
-            await startScanner();
+            await startCamera();
         }
 
         function onScanFailure(error) {
-            // スキャン中に頻繁に呼ばれるため、必要ならログだけに留める
-            // console.debug('Scan failure:', error);
+            // エラーログが大量に出るのを防ぐためコメントアウト
         }
 
         async function onScanSuccess(decodedText) {
             try {
-                if (html5QrCode) {
+                if (html5QrCode && isCameraRunning) {
                     await html5QrCode.pause();
                 }
             } catch (e) {
@@ -653,10 +587,7 @@ const encyclopediaData = {
                     foundItem.discovered = true;
                     const now = new Date();
                     foundItem.date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                    
-                    // ★ 追加：発見状態を端末に保存する
                     saveDiscoveredToStorage();
-                    
                     updateCategoryData();
                     alert(`【新種発見！】\n${foundItem.icon} ${foundItem.name} を図鑑に登録しました！`);
                     showDetail(foundItem.id);
@@ -669,23 +600,20 @@ const encyclopediaData = {
             }
 
             setTimeout(() => {
-                if (html5QrCode) {
+                if (html5QrCode && isCameraRunning) {
                     html5QrCode.resume();
                 }
             }, 1600);
         }
 
-        // ★ 追加：図鑑データをLocalStorageに保存する関数
         function saveDiscoveredToStorage() {
             const discoveredItems = encyclopediaData.all
                 .filter(item => item.discovered)
-                .map(item => ({ qrCode: item.qrCode, date: item.date })); // 必要な情報だけ抽出して軽量化
+                .map(item => ({ qrCode: item.qrCode, date: item.date }));
             localStorage.setItem('biohunter_discovered', JSON.stringify(discoveredItems));
         }
 
-        // ★ 追加：ページ読み込み時にLocalStorageから全データを復元する関数
         function restoreStateFromStorage() {
-            // 1. 図鑑データの復元
             const savedDiscoveredStr = localStorage.getItem('biohunter_discovered');
             if (savedDiscoveredStr) {
                 try {
@@ -698,19 +626,17 @@ const encyclopediaData = {
                         }
                     });
                 } catch(e) {
-                    console.error("図鑑データの復元に失敗しました:", e);
+                    console.error("図鑑データの復元に失敗:", e);
                 }
             }
 
-            // 2. ジョブが既に決まっている（2回目以降のアクセス）場合、長老画面を飛ばしてカメラへ直行
             if (sessionJobKey && jobs[sessionJobKey]) {
                 document.documentElement.style.setProperty('--job-color', jobs[sessionJobKey].color);
                 document.getElementById('hudJobName').textContent = sessionJobName;
                 document.getElementById('particles').style.display = 'none';
-                showState(4); // 直接カメラ画面へ
-                startScanner();
+                showState(4);
+                startCamera();
             } else {
-                // 初回アクセスなら同意画面（State 1）を表示
                 showState(1);
             }
         }
@@ -718,17 +644,13 @@ const encyclopediaData = {
         async function loadEncyclopediaFromSheet() {
             try {
                 const response = await fetch(`${SHEET_API_URL}?action=load`);
-                if (!response.ok) {
-                    throw new Error(`Google Sheets API 読み込みに失敗しました: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`API 読み込み失敗: ${response.status}`);
                 const result = await response.json();
                 if (Array.isArray(result.entries) && result.entries.length > 0) {
                     setEncyclopediaData(result.entries);
-                    return;
                 }
-                console.warn('Google Sheets から有効なデータが見つかりませんでした。', result);
             } catch (error) {
-                console.warn('Google Sheets 読み込み失敗:', error);
+                console.warn('Google Sheets 読み込み失敗 (ローカルデータを使用します):', error);
             }
         }
 
@@ -744,13 +666,13 @@ const encyclopediaData = {
                 description: row.description || '-',
                 date: row.date || '-',
                 rank: row.rank || 'Normal',
-                hint: row.hint || 'この場所の近く（例：3階廊下）に生息しているようだ...'
+                hint: row.hint || 'この場所の近くに生息しているようだ...'
             }));
             updateCategoryData();
         }
 
         // ==========================================
-        // 4. UIコントローラー (Modal & Render)
+        // 4. UIコントローラー
         // ==========================================
         function openEncyclopedia() {
             const overlay = document.getElementById('encyclopediaOverlay');
@@ -779,17 +701,11 @@ const encyclopediaData = {
                 if (item.discovered) {
                     div.className = 'cell cell-unlocked flex flex-col items-center justify-center p-3';
                     div.onclick = () => showDetail(item.id);
-                    div.innerHTML = `
-                        <div class="text-4xl mb-2">${item.icon}</div>
-                        <p class="text-[10px] text-[#66FCF1] font-bold text-center leading-tight">${item.name}</p>
-                    `;
+                    div.innerHTML = `<div class="text-4xl mb-2">${item.icon}</div><p class="text-[10px] text-[#66FCF1] font-bold text-center leading-tight">${item.name}</p>`;
                 } else {
                     div.className = 'cell cell-locked cursor-pointer flex flex-col items-center justify-center p-3';
                     div.onclick = () => showHint(item.id);
-                    div.innerHTML = `
-                        <div class="text-3xl mb-2 opacity-20">🔒</div>
-                        <p class="text-[10px] text-gray-600 text-center">???</p>
-                    `;
+                    div.innerHTML = `<div class="text-3xl mb-2 opacity-20">🔒</div><p class="text-[10px] text-gray-600 text-center">???</p>`;
                 }
                 grid.appendChild(div);
             });
@@ -814,7 +730,6 @@ const encyclopediaData = {
         function showHint(id) {
             const item = encyclopediaData.all.find(i => i.id === id);
             if (!item) return;
-
             clearTimeout(typeTimeout);
             document.getElementById('detailName').textContent = '???';
             document.getElementById('detailIcon').textContent = '❓';
@@ -824,14 +739,11 @@ const encyclopediaData = {
             const rankEl = document.getElementById('detailRank');
             rankEl.textContent = '???';
             rankEl.style.color = '#9CA3AF';
-
             document.getElementById('detailPopup').classList.remove('hidden');
         }
         function showDetail(id) {
             const item = encyclopediaData.all.find(i => i.id === id);
             if (!item || !item.discovered) return;
-
-            // 基本情報のセット
             document.getElementById('detailName').textContent = item.name;
             document.getElementById('detailIcon').textContent = item.icon || '🧬';
             document.getElementById('detailCategory').textContent = `CATEGORY: ${item.type.toUpperCase()}`;
@@ -839,25 +751,18 @@ const encyclopediaData = {
             const rankEl = document.getElementById('detailRank');
             rankEl.textContent = String(item.rank || 'NORMAL').toUpperCase();
             rankEl.style.color = getRankColor(item.rank);
-
-            // ポップアップを表示
-            const popup = document.getElementById('detailPopup');
-            popup.classList.remove('hidden');
-
-            // 説明文のタイピング演出
+            document.getElementById('detailPopup').classList.remove('hidden');
+            
             const descElement = document.getElementById('detailDescription');
             const fullText = item.description || "データが存在しません。";
-            
-            // 前回のタイピングをリセット
             clearTimeout(typeTimeout);
             descElement.textContent = "";
-            
             let i = 0;
             function typeWriter() {
                 if (i < fullText.length) {
                     descElement.textContent += fullText.charAt(i);
                     i++;
-                    typeTimeout = setTimeout(typeWriter, 30); // 30ms間隔で1文字表示
+                    typeTimeout = setTimeout(typeWriter, 30);
                 }
             }
             typeWriter();
@@ -875,7 +780,6 @@ const encyclopediaData = {
             document.body.appendChild(msgDiv);
             setTimeout(() => msgDiv.classList.remove('animate-pulse'), 3000);
         }
-
         function showErrorMessage(message) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-[200] glass-strong rounded-2xl p-6 max-w-md text-center border-2 border-[#C5001A] glow-purple';
@@ -888,27 +792,20 @@ const encyclopediaData = {
             `;
             document.body.appendChild(msgDiv);
         }
-
         function closeDetail() {
             document.getElementById('detailPopup').classList.add('hidden');
-            clearTimeout(typeTimeout); // 閉じた時に演出を止める
+            clearTimeout(typeTimeout);
         }
 
         // ==========================================
-        // 5. バックエンド通信 (GAS API)
+        // 5. バックエンド通信
         // ==========================================
-        const ENDPOINT_URL = SHEET_API_URL;
-
         async function reportToGuild() {
             const discoveredItems = encyclopediaData.all.filter(item => item.discovered);
             if (discoveredItems.length === 0) {
-                alert("まだ何も発見していないようだ。まずはターゲットをスキャンしてくれ！");
-                return;
+                alert("まだ何も発見していないようだ。まずはターゲットをスキャンしてくれ！"); return;
             }
-
-            if (!confirm(`現在 ${discoveredItems.length} 種を発見している。\nギルドへ報告し、探索を終了してもよいか？`)) {
-                return;
-            }
+            if (!confirm(`現在 ${discoveredItems.length} 種を発見している。\nギルドへ報告し、探索を終了してもよいか？`)) return;
 
             const loader = document.getElementById("loadingOverlay");
             const btn = document.getElementById("reportBtn");
@@ -925,54 +822,34 @@ const encyclopediaData = {
             };
 
             try {
-                const response = await fetch(ENDPOINT_URL, {
+                const response = await fetch(SHEET_API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify(postData)
                 });
                 const responseText = await response.text();
-                console.log("API レスポンス:", responseText);
+                if (!response.ok) throw new Error(`通信エラー ${response.status}: ${responseText}`);
                 
-                if (!response.ok) {
-                    throw new Error(`通信エラー ${response.status}: ${responseText}`);
-                }
-                
-                let result = {};
-                try {
-                    result = JSON.parse(responseText);
-                } catch (e) {
-                    console.warn('JSON パースエラー:', e);
-                }
-                console.log("送信成功:", result);
-                // ローディング画面をすぐに非表示
                 loader.classList.add("hidden");
-                
-                // ボタン更新
                 btn.innerHTML = `<span class="text-sm text-white font-bold">✓ 報告完了！</span>`;
                 btn.style.borderColor = "#FF3366";
                 btn.style.boxShadow = "0 0 15px rgba(255, 51, 102, 0.6)";
                 btn.disabled = false;
-                
-                // 成功メッセージを画面上部に表示
                 showSuccessMessage(`✨ 報告完了だ！\n【${sessionJobName}】としての見事な働きだった。\nこの画面を受付へ見せて、最終スタンプをもらうのだ！`);
             } catch (error) {
                 console.error("通信エラー:", error);
                 loader.classList.add("hidden");
-                
                 btn.innerHTML = `<span class="text-sm text-white font-bold">✗ 通信失敗</span>`;
                 btn.style.borderColor = "#C5001A";
                 btn.disabled = false;
-                
-                const errorMsg = `通信に失敗しました。\nエラー: ${error.message}\n\n開発者ツール (F12) を確認してください。`;
-                console.error("詳細エラー:", errorMsg);
-                showErrorMessage(errorMsg);
+                showErrorMessage(`通信に失敗しました。\nエラー: ${error.message}\n\n開発者ツール (F12) を確認してください。`);
             }
         }
 
         window.onload = async () => {
             createParticles();
-            await loadEncyclopediaFromSheet(); // GASからマスターデータを取得
-            restoreStateFromStorage(); // ★ 追加：ローカルストレージから個人の進行状況を復元し、画面を分岐
+            await loadEncyclopediaFromSheet(); 
+            restoreStateFromStorage(); 
             updateCategoryData();
         };
     </script>
