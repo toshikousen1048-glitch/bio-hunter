@@ -553,11 +553,13 @@
             }
 
             html5QrCode = new Html5Qrcode("reader");
+            
+            // ★ 修正1：qrbox（スキャン枠）を完全に削除し、超高速スキャンをONにする
             const config = {
-                fps: 10, 
+                fps: 15, 
                 experimentalFeatures: {
                     useBarCodeDetectorIfSupported: true
-                },
+                }
             };
 
             try {
@@ -570,14 +572,20 @@
                 document.getElementById('scanStatusDot').classList.replace('bg-red-500', 'bg-[#66FCF1]');
                 document.getElementById('scanStatusText').textContent = "ACTIVE";
 
+                // ★ 修正2：映像を歪ませる悪魔のコードを削除し、安全なフルスクリーンCSSに変更
                 setTimeout(() => {
                     const video = document.querySelector("#reader video");
                     if (video) {
+                        video.style.minWidth = "100%";
+                        video.style.minHeight = "100%";
                         video.style.objectFit = "cover";
-                        video.style.width = "100%";
-                        video.style.height = "100%";
+                        video.style.position = "absolute";
+                        video.style.top = "50%";
+                        video.style.left = "50%";
+                        video.style.transform = "translate(-50%, -50%)";
                     }
-                }, 1000);
+                }, 500);
+
             } catch (err) {
                 isCameraRunning = false;
                 console.error("カメラ起動エラー:", err);
