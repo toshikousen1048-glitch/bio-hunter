@@ -673,25 +673,20 @@
             }
 
             html5QrCode = new Html5Qrcode("reader");
-            const preferredFacing = localStorage.getItem('cameraFacing') || 'environment';
-
-            // iOSはexact指定が必要な場合がある
-            const cameraConstraints = preferredFacing === 'environment'
-             ? { facingMode: { exact: "environment" } }
-            : { facingMode: "user" };
-
             const config = {
-            fps: 60,
-            qrbox: { width: 220, height: 220 },
-            // experimentalFeatures はiOSで不安定なため削除
+                fps: 60, 
             };
 
             try {
-                await html5QrCode.start(cameraConstraints, config, onScanSuccess, undefined)
-                    .catch(async () => {
-                        // exactが失敗した場合はフォールバック（iOSの一部機種対策）
-                        await html5QrCode.start({ facingMode: preferredFacing }, config, onScanSuccess, undefined);
-                    });
+                const preferredFacing = localStorage.getItem('cameraFacing') || 'environment';
+                await html5QrCode.start({ facingMode: preferredFacing }, config, onScanSuccess, undefined);
+                
+                isCameraRunning = true;
+                document.getElementById('cameraErrorOverlay').classList.add('hidden');
+                document.getElementById('cameraErrorOverlay').classList.remove('flex');
+                document.getElementById('scanStatusDot').classList.replace('bg-red-500', 'bg-[#66FCF1]');
+                document.getElementById('scanStatusText').textContent = "ACTIVE";
+
                 setTimeout(() => {
                     const video = document.querySelector("#reader video");
                     if (video) {
